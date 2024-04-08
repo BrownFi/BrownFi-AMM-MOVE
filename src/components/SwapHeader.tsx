@@ -27,7 +27,7 @@ export default function SwapHeader() {
 					<TYPE.body
 						fontFamily={"Russo One"}
 						fontSize={24}
-						color={theme.text1}
+						color={theme?.text1}
 						style={{ marginRight: "8px" }}
 					>
 						Swap Token

@@ -1,48 +1,47 @@
 import styled, { css } from "styled-components";
-import { ButtonSecondary } from "./Button";
-import ConnectWallet from "/images/connect-wallet.png";
+// import { ButtonSecondary } from "./Button";
 import { ConnectModal, useAccounts, useCurrentAccount, useDisconnectWallet, useSwitchAccount } from "@mysten/dapp-kit";
 import { formatAddress } from "@mysten/sui.js/utils";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./Common/popover";
-import { Button } from "./Common/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "./Common/command";
+import { Button } from "./Common/Button";
 import { twMerge } from "tailwind-merge";
 
-const Web3StatusGeneric = styled(ButtonSecondary)`
-	${({ theme }) => theme.flexRowNoWrap}
-	width: 100%;
-	align-items: center;
-	padding: 18px 24px;
-	border-radius: 8px;
-	cursor: pointer;
-	user-select: none;
-	:focus {
-		outline: none;
-	}
-`;
+import DisconnectSVG from "/images/ic_disconnect.svg";
 
-const Web3StatusConnect = styled(Web3StatusGeneric)<{
-	faded?: boolean;
-	pending?: boolean;
-}>`
-	background-color: transparent;
-	border: none;
-	color: ${({ theme }) => theme.text1};
-	font-weight: 500;
+// const Web3StatusGeneric = styled(ButtonSecondary)`
+// 	${({ theme }) => theme.flexRowNoWrap}
+// 	width: 100%;
+// 	align-items: center;
+// 	padding: 18px 24px;
+// 	border-radius: 8px;
+// 	cursor: pointer;
+// 	user-select: none;
+// 	:focus {
+// 		outline: none;
+// 	}
+// `;
 
-	a {
-		color: ${({ theme }) => theme.text1};
-	}
+// const Web3StatusConnect = styled(Web3StatusGeneric)<{
+// 	faded?: boolean;
+// 	pending?: boolean;
+// }>`
+// 	background-color: transparent;
+// 	border: none;
+// 	color: ${({ theme }) => theme.text1};
+// 	font-weight: 500;
 
-	:hover,
-	:focus {
-		color: ${({ theme }) => theme.text1};
-	}
+// 	a {
+// 		color: ${({ theme }) => theme.text1};
+// 	}
 
-	${({ faded }) => faded && css``}
-`;
+// 	:hover,
+// 	:focus {
+// 		color: ${({ theme }) => theme.text1};
+// 	}
+
+// 	${({ faded }) => faded && css``}
+// `;
 
 const Text = styled.p`
 	font-family: Montserrat;
@@ -64,63 +63,77 @@ function ConnectedButton() {
 	const [open, setOpen] = useState(false);
 
 	return (
-		<Popover
-			open={open}
-			onOpenChange={setOpen}
-		>
-			<PopoverTrigger asChild>
-				<Button
-					variant="outline"
-					role="combobox"
-					aria-expanded={open}
-					className="w-[180px] justify-between"
-				>
-					{currentAccount ? formatAddress(currentAccount.address) : "..."}
-					<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent className="w-[180px] p-0">
-				<Command>
-					<CommandInput placeholder="Search accounts..." />
-					<CommandEmpty>No account found.</CommandEmpty>
-					<CommandGroup>
-						{accounts.map((account) => (
-							<CommandItem
-								key={account.address}
-								value={account.address}
-								className="cursor-pointer"
-								onSelect={() => {
-									switchAccount({ account });
-									setOpen(false);
-								}}
-							>
-								<Check className={twMerge("mr-2 h-4 w-4", currentAccount?.address === account.address ? "opacity-100" : "opacity-0")} />
-								{formatAddress(account.address)}
-							</CommandItem>
-						))}
-
-						<CommandItem
-							className="cursor-pointer"
-							onSelect={() => {
+		<>
+			<label
+				className="btn bg-transparent border-none hover:bg-transparent"
+				// @ts-ignore
+				onClick={() => document.getElementById("my_modal_2").showModal()}
+			>
+				<Text>{currentAccount ? formatAddress(currentAccount.address) : "..."}</Text>
+				<ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-white" />
+			</label>
+			<dialog
+				id="my_modal_2"
+				className="modal"
+			>
+				<div className="modal-box modal-bottom sm:modal-middle !rounded-md px-4 text-white">
+					<form method="dialog">
+						<button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+					</form>
+					<h3 className="font-bold text-lg">Account</h3>
+					<div className="flex flex-col mt-4 gap-6">
+						<div className="flex flex-col gap-1">
+							{accounts.map((account, idx) => (
+								<div
+									key={idx}
+									className="cursor-pointer flex justify-between items-center gap-1 self-stretch"
+									onSelect={() => {
+										switchAccount({ account });
+										setOpen(false);
+									}}
+								>
+									{formatAddress(account.address)}
+									<Check className={twMerge("mr-2 h-4 w-4", currentAccount?.address === account.address ? "opacity-100" : "opacity-0")} />
+								</div>
+							))}
+						</div>
+						<div
+							className="flex justify-end gap-1 self-stretch cursor-pointer"
+							onClick={() => {
 								disconnect();
 							}}
 						>
-							Disconnect
-						</CommandItem>
-					</CommandGroup>
-				</Command>
-			</PopoverContent>
-		</Popover>
+							<div className="flex items-center gap-1">Disconnect</div>
+							<img
+								src={DisconnectSVG}
+								alt=""
+								className="w-6 h-6"
+							/>
+						</div>
+					</div>
+				</div>
+			</dialog>
+		</>
 	);
 }
 
 export default function Login() {
 	const [connectModalOpen, setConnectModalOpen] = useState(false);
 	const currentAccount = useCurrentAccount();
+
 	return (
 		<>
 			<>
-				{currentAccount ? <ConnectedButton /> : <Button onClick={() => setConnectModalOpen(true)}>Connect Wallet</Button>}
+				{currentAccount ? (
+					<ConnectedButton />
+				) : (
+					<Button
+						className="bg-transparent hover:bg-transparent text-white"
+						onClick={() => setConnectModalOpen(true)}
+					>
+						Connect Wallet
+					</Button>
+				)}
 
 				<ConnectModal
 					trigger={<></>}
