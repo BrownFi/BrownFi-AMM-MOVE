@@ -8,6 +8,11 @@ import { AutoColumn } from "./Column";
 import { SwapPoolTabs } from "./NavigationTabs";
 import { RowBetween, RowFixed } from "./Row";
 import { TYPE } from "../theme";
+import { useCurrentAccount } from "@mysten/dapp-kit";
+import Login from "./Login";
+import { SUILPLIST } from "../utils/tokens";
+import { getTokenIcon } from "../utils/utils";
+import { twMerge } from "tailwind-merge";
 
 const PageWrapper = styled(AutoColumn)`
 	width: 100%;
@@ -50,6 +55,7 @@ export const EmptyProposals = styled.div`
 
 export default function Pool() {
 	const theme = useTheme();
+	const currentAccount = useCurrentAccount();
 
 	return (
 		<>
@@ -63,7 +69,7 @@ export default function Pool() {
 						gap="md"
 						style={{ width: "100%", justifyContent: "center" }}
 					>
-						{false ? (
+						{!currentAccount ? (
 							<div className="flex flex-col xl:w-[894px]">
 								<div className="flex flex-col bg-[#1D1C21] p-8 gap-8">
 									<div className="flex flex-col">
@@ -92,6 +98,7 @@ export default function Pool() {
 											</div>
 										</div>
 									</div>
+									<Login />
 								</div>
 								<div className="flex flex-col justify-center items-center py-3 gap-[2px] bg-[#323038]">
 									<div className="flex gap-1">
@@ -113,10 +120,10 @@ export default function Pool() {
 									</TYPE.body>
 								</div>
 							</div>
-						) : [].length == 0 ? (
+						) : SUILPLIST.length > 0 ? (
 							<>
 								<div className="flex flex-col xl:w-[894px]">
-									<div className="flex flex-col bg-[#1D1C21] p-8 gap-8">
+									<div className="flex flex-col bg-[#1D1C21] p-8 gap-8 lg:mt-[120px] lg:mb-[190px]">
 										<RowBetween>
 											<TYPE.body
 												color={theme.white}
@@ -158,6 +165,42 @@ export default function Pool() {
 												</TYPE.body>
 											</RowBetween>
 											<div className="w-full h-[1px] bg-[#4c4a4f]" />
+											{SUILPLIST.map((item, idx) => (
+												<div className="flex flex-col items-start py-4 px-6 gap-3 self-stretch border-b-[1px] border-[#4C4A4F]">
+													<div className="flex justify-between items-center self-stretch">
+														<div className="flex items-center gap-2">
+															<div className="flex items-start">
+																<img
+																	src={getTokenIcon(item.coinA.address)}
+																	alt=""
+																	className="w-5 h-5"
+																/>
+																<img
+																	src={getTokenIcon(item.coinB.address)}
+																	alt=""
+																	className="ml-[-8px] w-5 h-5"
+																/>
+															</div>
+															<span className="text-base font-medium">
+																{item.coinA.symbol}/{item.coinB.symbol}
+															</span>
+															<div className="flex items-center py-[2px] px-[12px] bg-[#314243] shadow-[0_2px_12px_0px_rgba(11,14,25,0.12)]">
+																<span className="text-sm font-medium text-[#27E39F] leading-[20px]">--%</span>
+															</div>
+														</div>
+													</div>
+													<div className="flex items-start gap-[59px]">
+														<div className="flex items-start gap-[6px]">
+															<span className="text-sm font-medium">Parameter:</span>
+															<span className="text-sm font-medium">-</span>
+														</div>
+														<div className="flex items-start gap-[6px]">
+															<span className="text-sm font-medium">Current LP Price:</span>
+															<span className="text-sm font-medium">--</span>
+														</div>
+													</div>
+												</div>
+											))}
 										</div>
 									</div>
 									<div className="flex flex-col justify-center items-center py-3 gap-[2px] bg-[#323038]">

@@ -13,6 +13,7 @@ const FooterWrapper = styled.footer`
 	height: 170px;
 	background: rgba(14, 13, 16, 1);
 	padding: 40px 108px 40px 108px;
+	z-index: 21;
 `;
 
 const FooterText = styled.div`

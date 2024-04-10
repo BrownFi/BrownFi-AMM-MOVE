@@ -20,7 +20,7 @@ root.render(
 		<FixedGlobalStyle />
 		<QueryClientProvider client={queryClient}>
 			<SuiClientProvider
-				defaultNetwork="sui:mainnet"
+				defaultNetwork="sui:devnet"
 				networks={{
 					"sui:testnet": { url: getFullnodeUrl("testnet") },
 					"sui:mainnet": { url: getFullnodeUrl("mainnet") },

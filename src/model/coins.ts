@@ -1,6 +1,8 @@
-export interface Tokens {
-	[key: string]: any;
-	[index: number]: any;
+export interface Token {
+	coinObjectCount: number;
+	coinType: string;
+	lockedBalance: any;
+	totalBalance: string;
 }
 
 export interface CoinStats {

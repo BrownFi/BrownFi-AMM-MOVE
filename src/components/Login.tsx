@@ -61,12 +61,13 @@ function ConnectedButton() {
 	const { mutateAsync: switchAccount } = useSwitchAccount();
 	const { mutateAsync: disconnect } = useDisconnectWallet();
 	const [open, setOpen] = useState(false);
-
+	console.log(accounts);
 	return (
 		<>
 			<label
-				className="btn bg-transparent border-none hover:bg-transparent"
+				className="btn bg-transparent border-none hover:bg-transparent cursor-pointer"
 				// @ts-ignore
+				// onClick={() => setOpen(true)}
 				onClick={() => document.getElementById("my_modal_2").showModal()}
 			>
 				<Text>{currentAccount ? formatAddress(currentAccount.address) : "..."}</Text>
@@ -74,7 +75,7 @@ function ConnectedButton() {
 			</label>
 			<dialog
 				id="my_modal_2"
-				className="modal"
+				className={twMerge("modal")}
 			>
 				<div className="modal-box modal-bottom sm:modal-middle !rounded-md px-4 text-white">
 					<form method="dialog">
@@ -89,7 +90,6 @@ function ConnectedButton() {
 									className="cursor-pointer flex justify-between items-center gap-1 self-stretch"
 									onSelect={() => {
 										switchAccount({ account });
-										setOpen(false);
 									}}
 								>
 									{formatAddress(account.address)}

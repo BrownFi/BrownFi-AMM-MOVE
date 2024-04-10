@@ -7,6 +7,7 @@ import BannerImg from "/images/background-1.png";
 import BannerImg2 from "/images/background-2.png";
 import Pool from "./components/Pool";
 import Swap from "./components/Swap";
+import AddLiquidity from "./components/AddLiquidity";
 
 const AppWrapper = styled.div<{ isHomePage: boolean }>`
 	display: flex;
@@ -69,6 +70,10 @@ function App() {
 						<Route
 							path="/pool"
 							element={<Pool />}
+						/>
+						<Route
+							path="/add/v2"
+							element={<AddLiquidity />}
 						/>
 					</Routes>
 				</BodyWrapper>

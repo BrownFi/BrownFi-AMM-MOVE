@@ -1,3 +1,38 @@
+import { SUI_COIN_TYPE } from "../constants/constants";
+import { Token } from "../model/coins";
+import { SUITOKENS } from "./tokens";
+import SUI_TOKEN_ICON from "/images/sui.svg";
+
+export const UNKNOWN_TOKEN_ICON = "https://icones.pro/wp-content/uploads/2021/05/icone-point-d-interrogation-question-noir.png";
+
+export const getTokenIcon = (coinType: string) => {
+	if (coinType === SUI_COIN_TYPE) {
+		return SUI_TOKEN_ICON;
+	} else {
+		const findToken = SUITOKENS.find((item) => item.address === coinType);
+		if (findToken) return findToken.logoURI;
+		return UNKNOWN_TOKEN_ICON;
+	}
+};
+
+export const formatBalance = (coin: Token) => {
+	if (coin.coinType === SUI_COIN_TYPE) {
+		return Number(coin.totalBalance) / 10 ** 9;
+	} else {
+		return Number(coin.totalBalance) / 10 ** 6;
+	}
+};
+
+export const getSymbol = (coinType: string) => {
+	if (coinType === SUI_COIN_TYPE) {
+		return "SUI";
+	} else {
+		const findToken = SUITOKENS.find((item) => item.address === coinType);
+		if (findToken) return findToken.symbol;
+		return "UNKNOWN";
+	}
+};
+
 const fixDEAdd = (num: any, precision: any, autoFix = true) => {
 	if (`${num}` === "0") {
 		// if (!window.parseFloat(precision) || !autoFix) return 0;
