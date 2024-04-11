@@ -13,7 +13,7 @@ export const SUITOKENS = [
 		symbol: "MOCK",
 	},
 	{
-		address: `${faucetObjectId}::coins::USDT`,
+		address: `${faucetObjectId}::usdt::USDT`,
 		calculate_decimals: 6,
 		decimals: 6,
 		logoURI: "https://archive.cetus.zone/assets/devnet/0x133a5219829f1859323a3bb2dbe04420ef0b807d::usdt::USDT/icon.png",
@@ -22,7 +22,7 @@ export const SUITOKENS = [
 		symbol: "USDT",
 	},
 	{
-		address: `${faucetObjectId}::coins::USDC`,
+		address: `${faucetObjectId}::usdc::USDC`,
 		calculate_decimals: 6,
 		decimals: 6,
 		logoURI: "https://archive.cetus.zone/assets/devnet/0x133a5219829f1859323a3bb2dbe04420ef0b807d::usdc::USDC/icon.png",
@@ -31,7 +31,7 @@ export const SUITOKENS = [
 		symbol: "USDC",
 	},
 	{
-		address: `${faucetObjectId}::coins::BTC`,
+		address: `${faucetObjectId}::btc::BTC`,
 		calculate_decimals: 8,
 		decimals: 8,
 		logoURI:
@@ -42,7 +42,7 @@ export const SUITOKENS = [
 		symbol: "BTC",
 	},
 	{
-		address: `${faucetObjectId}::coins::ETH`,
+		address: `${faucetObjectId}::eth::ETH`,
 		calculate_decimals: 8,
 		decimals: 8,
 		logoURI:
@@ -53,7 +53,7 @@ export const SUITOKENS = [
 		symbol: "ETH",
 	},
 	{
-		address: `${faucetObjectId}::coins::BNB`,
+		address: `${faucetObjectId}::bnb::BNB`,
 		calculate_decimals: 8,
 		decimals: 8,
 		logoURI: "https://icones.pro/wp-content/uploads/2021/05/icone-point-d-interrogation-question-noir.png",
@@ -62,7 +62,7 @@ export const SUITOKENS = [
 		symbol: "BNB",
 	},
 	{
-		address: `${faucetObjectId}::coins::DAI`,
+		address: `${faucetObjectId}::dai::DAI`,
 		calculate_decimals: 8,
 		decimals: 8,
 		logoURI: "https://icones.pro/wp-content/uploads/2021/05/icone-point-d-interrogation-question-noir.png",

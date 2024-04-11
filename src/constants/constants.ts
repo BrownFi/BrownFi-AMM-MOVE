@@ -8,3 +8,5 @@ export const WBTC_COIN_TYPE = "0x9fb972059f12bcdded441399300076d7cff7d9946669d3a
 export const DAI_COIN_TYPE = "0x9fb972059f12bcdded441399300076d7cff7d9946669d3a79b5fb837e2c49b09::coins:DAI";
 export const FEE_MULTIPLIER = 30;
 export const FEE_SCALE = 10000;
+
+export const LP_DECIMAL = 9;

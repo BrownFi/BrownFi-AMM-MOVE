@@ -3,12 +3,10 @@ import { colors, theme } from "../theme";
 import AppBody from "../AppBody";
 import SwapHeader from "./SwapHeader";
 import { AutoColumn } from "./Column";
-import CurrencyInputPanel from "./CurrencyInputPanel";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { suiClient } from "../utils/config";
 import { useEffect, useState } from "react";
 import { Field } from "../model/inputs";
-import { Token } from "../model/coins";
 import { SUITOKENS } from "../utils/tokens";
 import { SUI_COIN_TYPE } from "../constants/constants";
 import useSWR from "swr";
@@ -16,9 +14,8 @@ import { Input, Skeleton } from "antd";
 import ArrowDown from "./Icons/ArrowDown";
 import SwapIcon from "./Icons/SwapIcon";
 import { twMerge } from "tailwind-merge";
-import { formatBalance, getSymbol, getTokenIcon } from "../utils/utils";
+import { getBalanceAmount, getSymbol, getTokenIcon } from "../utils/utils";
 import SelectTokenModal from "./Modals/SelectToken/SelectTokenModal";
-import { PoolType, PoolInfo } from "../model/pools";
 
 const LightDiv = styled.div`
 	color: ${colors().text1};
@@ -138,7 +135,7 @@ export default function Swap() {
 									<span className="text-lg font-normal text-white font-['Russo_One']">You Pay</span>
 									<div className="flex items-center gap-1 text-base font-normal">
 										<span>Balance:</span>
-										<span>{balances && balances?.length > 0 ? formatBalance(balances[0]) : ""}</span>
+										<span>{balances && balances.length > 0 ? `${getBalanceAmount(balances[0])}` : "--"}</span>
 									</div>
 								</div>
 								<div className="flex flex-col items-start gap-[2px] self-stretch">
@@ -204,7 +201,7 @@ export default function Swap() {
 									<span className="text-lg font-normal text-white font-['Russo_One']">Your Receive</span>
 									<div className="flex items-center gap-1 text-base font-normal">
 										<span>Balance:</span>
-										<span className={isLoading ? "hidden" : ""}>{balances && balances?.length > 0 ? formatBalance(balances[1]) : ""}</span>
+										<span className={isLoading ? "hidden" : ""}>{balances && balances.length > 0 ? `${getBalanceAmount(balances[1])}` : "--"}</span>
 										<Skeleton.Input
 											className={!isLoading ? "!hidden" : ""}
 											active

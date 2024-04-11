@@ -1,14 +1,11 @@
 import { css, styled } from "styled-components";
-import { colors, theme } from "../theme";
+import { colors } from "../theme";
 import AppBody from "../AppBody";
-import SwapHeader from "./SwapHeader";
 import { AutoColumn } from "./Column";
-import CurrencyInputPanel from "./CurrencyInputPanel";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { suiClient } from "../utils/config";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Field } from "../model/inputs";
-import { Token } from "../model/coins";
 import { SUITOKENS } from "../utils/tokens";
 import { SUI_COIN_TYPE } from "../constants/constants";
 import useSWR from "swr";
@@ -16,9 +13,8 @@ import { Input, Skeleton } from "antd";
 import ArrowDown from "./Icons/ArrowDown";
 import SwapIcon from "./Icons/SwapIcon";
 import { twMerge } from "tailwind-merge";
-import { formatBalance, getSymbol, getTokenIcon } from "../utils/utils";
+import { getBalanceAmount, getDecimalAmount, getSymbol, getTokenIcon } from "../utils/utils";
 import SelectTokenModal from "./Modals/SelectToken/SelectTokenModal";
-import { PoolType, PoolInfo } from "../model/pools";
 import ArrowBack from "./Icons/ArrowBack";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 
@@ -120,56 +116,36 @@ export default function AddLiquidity() {
 		);
 	});
 
-	const getPools = async () => {
-		const objects = await suiClient.getDynamicFields({
-			parentId: "0x35e1d651e5c3b5c5a8f397e23397088551ae0f8a8a0dbe002737fb51bc7c52d2",
-		});
-		const ids = objects.data.map((_) => _.objectId);
-		const pools = await suiClient.multiGetObjects({
-			ids,
-			options: {
-				showContent: true,
-				showType: true,
-				showDisplay: true,
-				showOwner: true,
-			},
-		});
-		const poolList: any[] = [];
-		objects?.data?.forEach((pool) => {
-			poolList.push({
-				pool_addr: pool["objectId"],
-				pool_type: pool["objectType"],
-			});
-		});
-		console.log(pools);
-	};
-
-	getPools();
-
 	const packageObjectId = "0xdf76602fadcb531adc61ce48dd11e4de7038a824dd7e7a3ecfb510222884e2b2";
 
-	const addLiquidity = async (): Promise<TransactionBlock> => {
+	const addLiquidity = async (): Promise<any> => {
+		console.log(getDecimalAmount(typedValue));
+
 		const tx = new TransactionBlock();
 		tx.setSender("0xd4575fae90c78ad3b781f4d686bab3c16b089f03e2b4f5c932b18fda481a335d");
-
+		tx.setGasPrice(5);
+		tx.setGasBudget(100);
 		tx.moveCall({
-			target: "0x9fb972059f12bcdded441399300076d7cff7d9946669d3a79b5fb837e2c49b09::faucet::force_add_liquidity",
+			target: "0xdf76602fadcb531adc61ce48dd11e4de7038a824dd7e7a3ecfb510222884e2b2::interface::add_liquidity",
 			arguments: [
-				{ kind: "Input", value: "0xdf76602fadcb531adc61ce48dd11e4de7038a824dd7e7a3ecfb510222884e2b2::implements::Global", index: 0, type: "object" },
-				{ kind: "Input", value: "0xd9b4594557fc5857f0631145e713c9d020b596c6643c3f9a0bf9d854322eb5be", index: 1, type: "object" },
-				{ kind: "Input", value: 510555301, index: 2, type: "pure" },
-				{ kind: "Input", value: 510555301 * 0.005, index: 3, type: "pure" }, // Amout coin X x slippage
-				{ kind: "Input", value: "0x687bb19944a37bbedfa35bf41db6290a83387f6c01d173fbd40879517853c0d0", index: 4, type: "object" },
-				{ kind: "Input", value: 800000, index: 5, type: "pure" },
-				{ kind: "Input", value: 800000 * 0.005, index: 6, type: "pure" }, // Amout coin Y x slippage
+				{ kind: "Input", value: "0xdf76602fadcb531adc61ce48dd11e4de7038a824dd7e7a3ecfb510222884e2b2::implements::Global", index: 0, type: "object" }, //packageObjectid::module::func
+				{ kind: "Input", value: "0x9fb972059f12bcdded441399300076d7cff7d9946669d3a79b5fb837e2c49b09::usdt::USDT", index: 1, type: "object" }, // CoinIn
+				{ kind: "Input", value: 510555301, index: 2, type: "pure" }, // Amount coin in
+				{ kind: "Input", value: "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN", index: 3, type: "object" }, // CoinOut
+				{ kind: "Input", value: 800000, index: 4, type: "pure" }, // Amout coin out
 			],
+			typeArguments: ["0x2::sui::SUI", ""],
 		});
-		return tx;
+		const txb = await tx.build();
+		return txb;
 	};
 
 	const handleAddLiquidity = async () => {
 		const txb = await addLiquidity();
-		console.log(txb.blockData);
+		// const signedTx = await suiClient.signAndExecuteTransactionBlock({
+		// 	signer: ''
+		// 	transactionBlock: txb,
+		// });
 	};
 
 	handleAddLiquidity();
@@ -206,7 +182,8 @@ export default function AddLiquidity() {
 									<span className="text-lg font-normal text-white font-['Russo_One']">You Pay</span>
 									<div className="flex items-center gap-1 text-base font-normal">
 										<span>Balance:</span>
-										<span>{balances && balances?.length > 0 ? formatBalance(balances[0]) : ""}</span>
+										{/* <span>{balances && balances?.length > 0 ? formatBalance(balances[0]) : ""}</span> */}
+										<span>{balances && balances.length > 0 ? `${getBalanceAmount(balances[0])}` : "--"}</span>
 									</div>
 								</div>
 								<div className="flex flex-col items-start gap-[2px] self-stretch">
@@ -272,7 +249,7 @@ export default function AddLiquidity() {
 									<span className="text-lg font-normal text-white font-['Russo_One']">Your Receive</span>
 									<div className="flex items-center gap-1 text-base font-normal">
 										<span>Balance:</span>
-										<span className={isLoading ? "hidden" : ""}>{balances && balances?.length > 0 ? formatBalance(balances[1]) : ""}</span>
+										<span className={isLoading ? "hidden" : ""}>{balances && balances.length > 0 ? `${getBalanceAmount(balances[1])}` : "--"}</span>
 										<Skeleton.Input
 											className={!isLoading ? "!hidden" : ""}
 											active
