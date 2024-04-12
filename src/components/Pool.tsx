@@ -13,6 +13,7 @@ import Login from "./Login";
 import { SUILPLIST } from "../utils/tokens";
 import { getTokenIcon } from "../utils/utils";
 import { twMerge } from "tailwind-merge";
+import { getPools } from "../hooks/useSuiContracts";
 
 const PageWrapper = styled(AutoColumn)`
 	width: 100%;
@@ -56,6 +57,7 @@ export const EmptyProposals = styled.div`
 export default function Pool() {
 	const theme = useTheme();
 	const currentAccount = useCurrentAccount();
+	getPools();
 
 	return (
 		<>

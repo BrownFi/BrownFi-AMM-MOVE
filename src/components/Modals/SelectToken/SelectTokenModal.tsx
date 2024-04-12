@@ -132,7 +132,7 @@ const SelectTokenModal = (props: any) => {
 					<div className="flex flex-col items-start gap-1 self-stretch">
 						{searchValue === "" && (
 							<>
-								{[SUITOKENS[0]].map((item: any, index: number) => {
+								{SUITOKENS.map((item: any, index: number) => {
 									return (
 										<div
 											key={index}

@@ -2,21 +2,32 @@ import { css, styled } from "styled-components";
 import { colors } from "../theme";
 import AppBody from "../AppBody";
 import { AutoColumn } from "./Column";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useCurrentAccount, useSignTransactionBlock } from "@mysten/dapp-kit";
 import { suiClient } from "../utils/config";
 import { useState } from "react";
 import { Field } from "../model/inputs";
-import { SUITOKENS } from "../utils/tokens";
+import { SUILPLIST, SUITOKENS } from "../utils/tokens";
 import { SUI_COIN_TYPE } from "../constants/constants";
 import useSWR from "swr";
-import { Input, Skeleton } from "antd";
+import { Input, Skeleton, Slider } from "antd";
 import ArrowDown from "./Icons/ArrowDown";
 import SwapIcon from "./Icons/SwapIcon";
 import { twMerge } from "tailwind-merge";
-import { getBalanceAmount, getDecimalAmount, getSymbol, getTokenIcon } from "../utils/utils";
+import { checkLPValid, getBalanceAmount, getDecimalAmount, getSymbol, getTokenIcon } from "../utils/utils";
 import SelectTokenModal from "./Modals/SelectToken/SelectTokenModal";
 import ArrowBack from "./Icons/ArrowBack";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
+import { handleGetCoinAmount } from "../libs/handleGetCoinAmount";
+import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
+import { fromHEX } from "@mysten/sui.js/utils";
+import { isObject } from "lodash";
+import HelpIcon from "./Icons/HelpIcon";
+import { SUI_DEVNET_CHAIN, Wallet } from "@mysten/wallet-standard";
+import { useSignAndExecuteTransactionBlock } from "@mysten/dapp-kit";
+import { SuiSignAndExecuteTransactionBlockMethod } from "@mysten/wallet-standard";
+import { BigNumberInstance } from "../utils/bigNumber";
+import Login from "./Login";
+import ConfirmModal from "./Modals/TransactionLoading/TransactionLoading";
 
 const LightDiv = styled.div`
 	color: ${colors().text1};
@@ -66,21 +77,22 @@ export type CreateAddLiquidTXPayloadParams = {
 
 export default function AddLiquidity() {
 	const currentAccount = useCurrentAccount();
+	const { mutate: signTransactionBlock } = useSignTransactionBlock();
+	const { mutate: signAndExecuteTransactionBlock } = useSignAndExecuteTransactionBlock();
 
 	const [isShowTokenModal, setIsShowTokenModal] = useState<boolean>(false);
 	const [typeModal, setTypeModal] = useState<number>(1);
-	const [isShowReviewModal, setIsShowReviewModal] = useState<boolean>(false);
-	const [isApprove, setIsApprove] = useState<boolean>(false);
-	const [approveTx, setApproveTx] = useState<string | undefined>(undefined);
+	const [isShowConfirmModal, setIsShowConfirmModal] = useState<boolean>(false);
 	const [disabled, setDisabled] = useState(false);
 	const [k, setK] = useState(2);
 	const [submitting, setSubmitting] = useState<boolean>(false);
 	const [isSuccess, setIsSuccess] = useState<boolean>(false);
 	const [typedValue, setTypedValue] = useState("");
 	const [independentField, setIndependentField] = useState<Field>(Field.INPUT);
+	const [digest, setDigest] = useState<string>("");
 
 	const [tokens, setTokens] = useState<{
-		[key in Field]: string | undefined;
+		[key in Field]: string;
 	}>({
 		[Field.INPUT]: SUI_COIN_TYPE,
 		[Field.OUTPUT]: SUITOKENS[0].address,
@@ -102,7 +114,7 @@ export default function AddLiquidity() {
 		[Field.OUTPUT]: undefined,
 	});
 
-	const { data: balances, isLoading } = useSWR<(any | undefined)[]>([currentAccount, tokens[Field.INPUT], tokens[Field.OUTPUT]], async () => {
+	const { data: balances, isLoading } = useSWR<any[]>([currentAccount, tokens[Field.INPUT], tokens[Field.OUTPUT]], async () => {
 		if (!currentAccount) return [];
 		return Promise.all(
 			[tokens[Field.INPUT], tokens[Field.OUTPUT]].map(async (t) => {
@@ -116,44 +128,87 @@ export default function AddLiquidity() {
 		);
 	});
 
-	const packageObjectId = "0xdf76602fadcb531adc61ce48dd11e4de7038a824dd7e7a3ecfb510222884e2b2";
+	const addLiquidity = async () => {
+		try {
+			const isLPExist = SUILPLIST.find((item) => item.coinA.address === tokens[Field.INPUT] && item.coinB.address === tokens[Field.OUTPUT]);
 
-	const addLiquidity = async (): Promise<any> => {
-		console.log(getDecimalAmount(typedValue));
+			if (!isLPExist || !currentAccount || !balances) return;
 
-		const tx = new TransactionBlock();
-		tx.setSender("0xd4575fae90c78ad3b781f4d686bab3c16b089f03e2b4f5c932b18fda481a335d");
-		tx.setGasPrice(5);
-		tx.setGasBudget(100);
-		tx.moveCall({
-			target: "0xdf76602fadcb531adc61ce48dd11e4de7038a824dd7e7a3ecfb510222884e2b2::interface::add_liquidity",
-			arguments: [
-				{ kind: "Input", value: "0xdf76602fadcb531adc61ce48dd11e4de7038a824dd7e7a3ecfb510222884e2b2::implements::Global", index: 0, type: "object" }, //packageObjectid::module::func
-				{ kind: "Input", value: "0x9fb972059f12bcdded441399300076d7cff7d9946669d3a79b5fb837e2c49b09::usdt::USDT", index: 1, type: "object" }, // CoinIn
-				{ kind: "Input", value: 510555301, index: 2, type: "pure" }, // Amount coin in
-				{ kind: "Input", value: "0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN", index: 3, type: "object" }, // CoinOut
-				{ kind: "Input", value: 800000, index: 4, type: "pure" }, // Amout coin out
-			],
-			typeArguments: ["0x2::sui::SUI", ""],
-		});
-		const txb = await tx.build();
-		return txb;
+			setIsShowConfirmModal(true);
+			setSubmitting(true);
+			const coinAType = tokens[Field.INPUT];
+			const coinBType = tokens[Field.OUTPUT];
+
+			let txb = new TransactionBlock();
+
+			console.log(BigNumberInstance(tokenAmounts[Field.INPUT]) > getBalanceAmount(balances[0]));
+
+			const { coin: coinObjectAId, tx } = await handleGetCoinAmount(getDecimalAmount(tokenAmounts[Field.INPUT]), currentAccount.address, coinAType, txb);
+			const { coin: coinObjectBId, tx: tx2 } = await handleGetCoinAmount(getDecimalAmount(tokenAmounts[Field.OUTPUT]), currentAccount.address, coinBType, txb);
+
+			txb.moveCall({
+				target: `0xdf9a156750a94787b8a36a950d5cfb165bc69126495626da46a050fd145b9ce8::interface::add_liquidity`,
+				typeArguments: [coinAType, coinBType],
+				arguments: [
+					txb.object("0xa9d3cc6866642735b92e5627dc3657fc914341f5cbd833092889adffc925719a"),
+					isObject(coinObjectAId) ? coinObjectAId : tx.object(coinObjectAId),
+					txb.pure(1),
+					isObject(coinObjectBId) ? coinObjectBId : tx.object(coinObjectBId),
+					txb.pure(1),
+				],
+			});
+			txb.setSender(currentAccount.address);
+			txb.setGasBudget(1000000000);
+
+			const bytes = await txb.build({ client: suiClient });
+
+			let res = signTransactionBlock(
+				{
+					transactionBlock: txb,
+					chain: "sui:devnet",
+				},
+				{
+					onSuccess: async (result) => {
+						console.log("executed transaction block", result, result.signature);
+						let data = await suiClient.executeTransactionBlock({
+							transactionBlock: bytes,
+							signature: result.signature,
+						});
+						setDigest(data.digest);
+						setSubmitting(false);
+						setIsSuccess(true);
+						setTokenAmounts({
+							[Field.INPUT]: "",
+							[Field.OUTPUT]: "",
+						});
+					},
+				}
+			);
+		} catch (error) {
+			console.log("🚀 ~ file: add-lp.js:6 ~ main ~ error:", error);
+			setIsShowConfirmModal(false);
+		}
 	};
-
-	const handleAddLiquidity = async () => {
-		const txb = await addLiquidity();
-		// const signedTx = await suiClient.signAndExecuteTransactionBlock({
-		// 	signer: ''
-		// 	transactionBlock: txb,
-		// });
-	};
-
-	handleAddLiquidity();
 
 	const handleChangeAmounts = (value: string, independentField: Field) => {
+		if (!checkLPValid(tokens[Field.INPUT], tokens[Field.OUTPUT])) return;
+
 		if (isNaN(+value)) return;
+
+		// if (value === "") {
+		// 	setTokenAmounts({
+		// 		[Field.INPUT]: "",
+		// 		[Field.OUTPUT]: "",
+		// 	});
+		// 	return;
+		// }
+
 		setTypedValue(value);
 		setIndependentField(independentField);
+		setTokenAmounts({
+			[Field.INPUT]: value,
+			[Field.OUTPUT]: (Number(value) * 9).toString(),
+		});
 	};
 
 	return (
@@ -192,7 +247,7 @@ export default function AddLiquidity() {
 											<Input
 												placeholder="0.0"
 												className="border-none px-0 text-xl font-bold max-w-[150px] text-[#C6C6C6]"
-												value={independentField === Field.INPUT ? typedValue : ""}
+												value={tokenAmounts[Field.INPUT]}
 												onChange={(e) => handleChangeAmounts(e.target.value, Field.INPUT)}
 											/>
 										</div>
@@ -214,25 +269,7 @@ export default function AddLiquidity() {
 											<ArrowDown />
 										</div>
 									</div>
-									<div className="flex items-center gap-1 text-sm font-medium text-[rgba(255,255,255,0.50)]">
-										{/* <span>
-								{!!trade
-									? `~${
-											Number(
-												trade?.inputAmount.toSignificant(
-													2
-												)
-											) *
-											Number(
-												trade?.executionPrice.toSignificant(
-													2
-												)
-											)
-									  }`
-									: "--"}
-							</span> */}
-										--
-									</div>
+									<div className="flex items-center gap-1 text-sm font-medium text-[rgba(255,255,255,0.50)]">--</div>
 								</div>
 							</div>
 							<SwapIcon
@@ -266,7 +303,7 @@ export default function AddLiquidity() {
 													"border-none px-0 text-xl max-w-[150px] font-medium text-[#27E3AB]"
 													// isLoadingTrade && "hidden"
 												)}
-												value={independentField === Field.OUTPUT ? typedValue : ""}
+												value={tokenAmounts[Field.OUTPUT]}
 												onChange={(e) => handleChangeAmounts(e.target.value, Field.OUTPUT)}
 											/>
 											{/* <Skeleton.Input
@@ -297,18 +334,57 @@ export default function AddLiquidity() {
 											<ArrowDown />
 										</div>
 									</div>
-									<div className="flex items-center gap-1 text-sm font-medium text-[rgba(255,255,255,0.50)]">
-										{/* <span>
-								{!!trade
-									? `~
-									${trade?.outputAmount.toSignificant(2)}`
-									: "--"}
-							</span> */}
-										--
-									</div>
+									<div className="flex items-center gap-1 text-sm font-medium text-[rgba(255,255,255,0.50)]">--</div>
 								</div>
 							</div>
 						</div>
+						<div className="flex flex-col items-start gap-8 self-stretch">
+							<div className="flex flex-col items-start gap-4 self-stretch">
+								<div className="flex items-center gap-5 self-stretch">
+									<div className="flex items-center gap-1">
+										<span className="text-base font-bold leading-[20px]">Set Liquidity Concentration Parameter</span>
+										<HelpIcon />
+									</div>
+								</div>
+								<div className="flex items-center gap-2 self-stretch">
+									<span className="text-base font-medium leading-[24px] whitespace-nowrap">0.8</span>
+									<Slider
+										className="w-full"
+										defaultValue={k}
+										tooltip={{ open: true }}
+										max={2}
+										min={0.8}
+										step={0.1}
+										tooltipPlacement="bottom"
+										onChange={onChangeK}
+										disabled={disabled}
+									/>
+									<span className="text-base font-medium leading-[24px]">2</span>
+								</div>
+							</div>
+							<div className="flex justify-between items-center self-stretch">
+								<span className="text-base font-bold leading-[20px]">Capital Efficiency</span>
+								<div className="flex h-8 items-center justify-center gap-1 px-4 bg-[#323038]">
+									<span className="text-xs font-bold">1000x</span>
+								</div>
+							</div>
+						</div>
+						{!currentAccount && <Login></Login>}
+						{currentAccount && balances && BigNumberInstance(tokenAmounts[Field.INPUT]) > getBalanceAmount(balances[0]) ? (
+							<div className="flex justify-center items-center gap-2 self-stretch py-[18px] px-6 bg-[#737373] cursor-not-allowed">
+								<span className="text-base font-bold">Insufficient Balance</span>
+							</div>
+						) : (
+							<div
+								className={twMerge(
+									"flex justify-center items-center gap-2 self-stretch py-[18px] px-6 bg-[#773030] cursor-pointer",
+									!currentAccount && "hidden"
+								)}
+								onClick={() => addLiquidity()}
+							>
+								<span className="text-base font-bold">Add</span>
+							</div>
+						)}
 					</AutoColumn>
 				</Wrapper>
 			</AppBody>
@@ -321,6 +397,16 @@ export default function AddLiquidity() {
 					setToken={setTokens}
 					typeModal={typeModal}
 					balances={balances}
+				/>
+			)}
+			{isShowConfirmModal && (
+				<ConfirmModal
+					isShowing={isShowConfirmModal}
+					hide={setIsShowConfirmModal}
+					submitting={submitting}
+					isSuccess={isSuccess}
+					setIsSuccess={setIsSuccess}
+					setSubmitting={setSubmitting}
 				/>
 			)}
 		</>

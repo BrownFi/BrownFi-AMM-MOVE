@@ -1,7 +1,7 @@
 import { LP_DECIMAL, SUI_COIN_TYPE } from "../constants/constants";
 import { Token } from "../model/coins";
-import { BIG_TEN, BigNumberInstance } from "./BigNumber";
-import { SUITOKENS } from "./tokens";
+import { BIG_TEN, BigNumberInstance } from "./bigNumber";
+import { SUILPLIST, SUITOKENS } from "./tokens";
 import SUI_TOKEN_ICON from "/images/sui.svg";
 
 export const UNKNOWN_TOKEN_ICON = "https://icones.pro/wp-content/uploads/2021/05/icone-point-d-interrogation-question-noir.png";
@@ -44,4 +44,10 @@ export const getBalanceAmount = (coin: Token, decimals = LP_DECIMAL) => {
 	} else {
 		return BigNumberInstance(coin.totalBalance).div(BIG_TEN.pow(6));
 	}
+};
+
+export const checkLPValid = (coinX: string, coinY: string) => {
+	const isLPExist = SUILPLIST.find((item) => item.coinA.address === coinX && item.coinB.address === coinY);
+	if (isLPExist) return true;
+	return false;
 };

@@ -1,10 +1,10 @@
-import { getPureSerializationType, TransactionBlock } from "@mysten/sui.js/dist/cjs/transactions";
 import { suiClient } from "../utils/config";
 import { isObject } from "lodash";
+import { TransactionBlock, getPureSerializationType } from "@mysten/sui.js/transactions";
 
-const getPools = async () => {
+export const getPools = async () => {
 	const objects = await suiClient.getDynamicFields({
-		parentId: "0x35e1d651e5c3b5c5a8f397e23397088551ae0f8a8a0dbe002737fb51bc7c52d2",
+		parentId: "0x02efaff4e9c6c8957ef2fffb264d2895270b1850b7fdc60213ba29e40035d0ce",
 	});
 	const ids = objects.data.map((_) => _.objectId);
 	const pools = await suiClient.multiGetObjects({

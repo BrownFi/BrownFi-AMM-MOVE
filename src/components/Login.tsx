@@ -128,7 +128,7 @@ export default function Login() {
 					<ConnectedButton />
 				) : (
 					<Button
-						className="bg-transparent hover:bg-transparent text-white"
+						className="bg-[rgba(119,48,48,1)] text-white"
 						onClick={() => setConnectModalOpen(true)}
 					>
 						Connect Wallet
