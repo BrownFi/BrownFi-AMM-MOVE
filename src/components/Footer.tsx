@@ -12,7 +12,10 @@ const FooterWrapper = styled.footer`
 	bottom: 0;
 	height: 170px;
 	background: rgba(14, 13, 16, 1);
-	padding: 40px 108px 40px 108px;
+	padding: 16px;
+	@media (min-width: 768px) {
+		padding: 40px 108px 40px 108px;
+	}
 	z-index: 21;
 `;
 
@@ -27,7 +30,7 @@ const FooterText = styled.div`
 const Footer = () => {
 	return (
 		<FooterWrapper>
-			<div>
+			<div className="flex flex-col justify-center items-center">
 				<img
 					src={Logo}
 					alt={""}
