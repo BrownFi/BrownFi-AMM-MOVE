@@ -29,6 +29,10 @@ const BodyWrapper = styled.div`
 	height: 100vh;
 	justify-content: center;
 	margin-bottom: 130px;
+	@media (min-width: 768px) {
+		margin-bottom: 170px;
+		margin-top: 96px;
+	}
 
 	${({ theme }) => theme.mediaWidth.upToSmall`
     padding: 16px;

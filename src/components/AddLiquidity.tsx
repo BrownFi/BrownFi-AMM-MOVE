@@ -22,9 +22,7 @@ import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { fromHEX } from "@mysten/sui.js/utils";
 import { isObject } from "lodash";
 import HelpIcon from "./Icons/HelpIcon";
-import { SUI_DEVNET_CHAIN, Wallet } from "@mysten/wallet-standard";
 import { useSignAndExecuteTransactionBlock } from "@mysten/dapp-kit";
-import { SuiSignAndExecuteTransactionBlockMethod } from "@mysten/wallet-standard";
 import { BigNumberInstance } from "../utils/bigNumber";
 import Login from "./Login";
 import ConfirmModal from "./Modals/TransactionLoading/TransactionLoading";
@@ -141,16 +139,24 @@ export default function AddLiquidity() {
 
 			let txb = new TransactionBlock();
 
-			console.log(BigNumberInstance(tokenAmounts[Field.INPUT]) > getBalanceAmount(balances[0]));
-
-			const { coin: coinObjectAId, tx } = await handleGetCoinAmount(getDecimalAmount(tokenAmounts[Field.INPUT]), currentAccount.address, coinAType, txb);
-			const { coin: coinObjectBId, tx: tx2 } = await handleGetCoinAmount(getDecimalAmount(tokenAmounts[Field.OUTPUT]), currentAccount.address, coinBType, txb);
+			const { coin: coinObjectAId, tx } = await handleGetCoinAmount(
+				getDecimalAmount(tokenAmounts[Field.INPUT], tokens[Field.INPUT]),
+				currentAccount.address,
+				coinAType,
+				txb
+			);
+			const { coin: coinObjectBId, tx: tx2 } = await handleGetCoinAmount(
+				getDecimalAmount(tokenAmounts[Field.OUTPUT], tokens[Field.OUTPUT]),
+				currentAccount.address,
+				coinBType,
+				txb
+			);
 
 			txb.moveCall({
-				target: `0xdf9a156750a94787b8a36a950d5cfb165bc69126495626da46a050fd145b9ce8::interface::add_liquidity`,
+				target: `0x6394e554433ff20acb0d79d9538a13f6f8159f2cb7444ed98ef2bbb2ec999c62::interface::add_liquidity`,
 				typeArguments: [coinAType, coinBType],
 				arguments: [
-					txb.object("0xa9d3cc6866642735b92e5627dc3657fc914341f5cbd833092889adffc925719a"),
+					txb.object("0x2b3ec8419b09ba06adaca2e704160903868145e47bcfa7dfa741f9b52207f006"),
 					isObject(coinObjectAId) ? coinObjectAId : tx.object(coinObjectAId),
 					txb.pure(1),
 					isObject(coinObjectBId) ? coinObjectBId : tx.object(coinObjectBId),
@@ -191,8 +197,6 @@ export default function AddLiquidity() {
 	};
 
 	const handleChangeAmounts = (value: string, independentField: Field) => {
-		if (!checkLPValid(tokens[Field.INPUT], tokens[Field.OUTPUT])) return;
-
 		if (isNaN(+value)) return;
 
 		// if (value === "") {

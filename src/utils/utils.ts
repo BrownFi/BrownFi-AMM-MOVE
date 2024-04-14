@@ -34,8 +34,13 @@ export const getSymbol = (coinType: string) => {
 	}
 };
 
-export const getDecimalAmount = (amount: string | number, decimals = LP_DECIMAL) => {
-	return BigNumberInstance(amount).times(BIG_TEN.pow(decimals)).toFixed();
+export const getDecimalAmount = (amount: string | number, coinType?: string, decimals = LP_DECIMAL) => {
+	if (coinType === SUI_COIN_TYPE) {
+		return BigNumberInstance(amount).times(BIG_TEN.pow(decimals)).toFixed();
+	} else {
+		// TODO
+		return BigNumberInstance(amount).times(BIG_TEN.pow(6)).toFixed();
+	}
 };
 
 export const getBalanceAmount = (coin: Token, decimals = LP_DECIMAL) => {

@@ -12,6 +12,7 @@ const HeaderFrame = styled.div<{
 }>`
 	display: flex;
 	gap: 44px;
+	flex: 1 1 0%;
 	height: 96px;
 	justify-content: space-between;
 	flex-direction: row;

@@ -1,16 +1,14 @@
 import { SUI_COIN_TYPE } from "../constants/constants";
 import SUI_IMAGE from "/images/sui.svg";
 
-const faucetObjectId = "0x571ae7fc8e3b557f4297e20fedcfd8319c8ab46c3a777a143622900a79b02164";
-
 export const SUITOKENS = [
 	{
 		address: "0x23a21e3ce259d81cc21a4e4e4e0dad7be73855f2c3a73a1ad7fea1e1d248fa94::mock_token::MOCK_TOKEN",
-		calculate_decimals: 9,
-		decimals: 9,
+		calculate_decimals: 6,
+		decimals: 6,
 		logoURI: "https://icones.pro/wp-content/uploads/2021/05/icone-point-d-interrogation-question-noir.png",
 		name: "MOCK TOKEN",
-		show_decimals: 9,
+		show_decimals: 6,
 		symbol: "MOCK",
 	},
 	{
