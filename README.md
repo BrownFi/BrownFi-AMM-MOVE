@@ -1,11 +1,14 @@
-# BrownAMM
-**Novel AMM protocol with high CE & tailored market making strategies**  
+# BrownFi AMM
+**a ve(3,3) renovated AMM to unlock deep liquidity & capital efficiency on SUI 
 
-## Fundamental problems
+## Fundamental problems  
+- Conventional DEXes usually misalign incentives for LPs, offer token inflation with rewards controlled by the DEX developers.
 - Uniswap v2 is simple but low Capital Efficiency (CE)
-- Uniswap v3 has high CE but complicated UX for LPs, non-fungible LP tokens. It requires manually adjusting bins &  unbalanced inventory.
-## Solution (a novel AMM - Elastic PLOB): transform MM to asset allocation
-We invent a novel price discovery mechanism, namely, **Elastic PLOB** to tailor CE & market making, while keeping simple UX, fungibility & reusability of LP tokens of Uniswap v2. PLOB stands for Parameterized Limit Order-Book, which inspires Octan model.
+- Uniswap v3 has high CE but complicated UX for LPs, non-fungible LP tokens. It requires manually adjusting bins.
+
+## Solution: a novel ve(3,3) renovated AMM 
+We renovate AMM model and apply ve(3,3) token model to unlock deep liquidity and maximize incentives for all participants. We invent a novel price discovery mechanism, inspired by order-book, to tailor CE & market making, while keeping simple UX, fungibility & reusability of LP tokens of Uniswap v2. On the other hand, veToken model is integrated with our innovative AMM to align and maximize incentives for all participants (LPs, traders, veToken stakers). All of these makes BrownFi standing out of other competitors on SUI ecosystem. Our AMM model is originated from a rigorous [research paper](https://ieeexplore.ieee.org/abstract/document/10456889) of BrownFi's cofounder, published on IEEE Access, a reputable academic journal. 
+
 
 ## Introduction
 BrownFi proposes a novel AMM model, where LPs allocate their liquidity into the pool according to a bonding curve that mimics the general shape of a traditional limit orderbook (LOB). We introduce a novel concept, *Elastic Factor*, to allow the liquidity concentration of the AMM to be automatically adjusted according to the relative trading size. This elasticity ensures unbounded liquidity, thus the pool never runs out of liquidity regardless of the trading size. Our general Elastic model covers the special case of the constant-product market making model $xy=k$. More importantly, it opens a new door to create arbitrary AMM with customized local orderbook shape around the market price as well as tailored liquidity concentration.
