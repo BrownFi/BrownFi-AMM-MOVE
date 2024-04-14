@@ -1,5 +1,5 @@
 # BrownFi AMM
-**a ve(3,3) renovated AMM to unlock deep liquidity & capital efficiency on SUI 
+**a ve(3,3) renovated AMM to unlock deep liquidity & capital efficiency on SUI** 
 
 ## Fundamental problems  
 - Conventional DEXes usually misalign incentives for LPs, offer token inflation with rewards controlled by the DEX developers.
