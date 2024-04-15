@@ -38,6 +38,9 @@ The core swap function of BrownFi is based on an invention of a price discovery 
 
 ## BrownFi’s Published Research Paper
 https://ieeexplore.ieee.org/abstract/document/10456889 
-![image](https://github.com/BrownFi/BrownFi-AMM-SUI/assets/45308207/471ef717-fad3-4419-a4af-875dae6c07d8)
+![image](https://github.com/BrownFi/BrownFi-AMM-SUI/assets/45308207/471ef717-fad3-4419-a4af-875dae6c07d8) 
+
+## Smartcontract repo
+Request for access to core contracts of AMM prototype https://github.com/BrownFi/BrownFi-Sui
 
 
