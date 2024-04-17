@@ -2,7 +2,7 @@ import { css, styled } from "styled-components";
 import { colors } from "../theme";
 import AppBody from "../AppBody";
 import { AutoColumn } from "./Column";
-import { useCurrentAccount, useSignTransactionBlock } from "@mysten/dapp-kit";
+import { useCurrentAccount, useSignTransactionBlock, useWallets } from "@mysten/dapp-kit";
 import { suiClient } from "../utils/config";
 import { useState } from "react";
 import { Field } from "../model/inputs";
@@ -75,6 +75,7 @@ export type CreateAddLiquidTXPayloadParams = {
 
 export default function AddLiquidity() {
 	const currentAccount = useCurrentAccount();
+	const wallets = useWallets();
 	const { mutate: signTransactionBlock } = useSignTransactionBlock();
 	const { mutate: signAndExecuteTransactionBlock } = useSignAndExecuteTransactionBlock();
 
@@ -83,8 +84,7 @@ export default function AddLiquidity() {
 	const [isShowConfirmModal, setIsShowConfirmModal] = useState<boolean>(false);
 	const [disabled, setDisabled] = useState(false);
 	const [k, setK] = useState(2);
-	const [submitting, setSubmitting] = useState<boolean>(false);
-	const [isSuccess, setIsSuccess] = useState<boolean>(false);
+	const [status, setStatus] = useState<string>("");
 	const [typedValue, setTypedValue] = useState("");
 	const [independentField, setIndependentField] = useState<Field>(Field.INPUT);
 	const [digest, setDigest] = useState<string>("");
@@ -133,7 +133,7 @@ export default function AddLiquidity() {
 			if (!isLPExist || !currentAccount || !balances) return;
 
 			setIsShowConfirmModal(true);
-			setSubmitting(true);
+			setStatus("submitting");
 			const coinAType = tokens[Field.INPUT];
 			const coinBType = tokens[Field.OUTPUT];
 
@@ -153,10 +153,10 @@ export default function AddLiquidity() {
 			);
 
 			txb.moveCall({
-				target: `0x6394e554433ff20acb0d79d9538a13f6f8159f2cb7444ed98ef2bbb2ec999c62::interface::add_liquidity`,
+				target: `0xbacddd9ff142a3d5621fc0bb453d7af967b1dc201ce982b32b6db9402370fbd0::interface::add_liquidity`,
 				typeArguments: [coinAType, coinBType],
 				arguments: [
-					txb.object("0x2b3ec8419b09ba06adaca2e704160903868145e47bcfa7dfa741f9b52207f006"),
+					txb.object("0x6e7e70fe7c052cb9a8c66015ecb07ab3de2ad4500e7031c0ae135a2917948bb9"),
 					isObject(coinObjectAId) ? coinObjectAId : tx.object(coinObjectAId),
 					txb.pure(1),
 					isObject(coinObjectBId) ? coinObjectBId : tx.object(coinObjectBId),
@@ -171,22 +171,24 @@ export default function AddLiquidity() {
 			let res = signTransactionBlock(
 				{
 					transactionBlock: txb,
-					chain: "sui:devnet",
+					chain: "sui:testnet",
 				},
 				{
 					onSuccess: async (result) => {
-						console.log("executed transaction block", result, result.signature);
 						let data = await suiClient.executeTransactionBlock({
 							transactionBlock: bytes,
 							signature: result.signature,
 						});
 						setDigest(data.digest);
-						setSubmitting(false);
-						setIsSuccess(true);
+						setStatus("success");
 						setTokenAmounts({
 							[Field.INPUT]: "",
 							[Field.OUTPUT]: "",
 						});
+					},
+					onError: async (err) => {
+						console.log(err);
+						setStatus("fail");
 					},
 				}
 			);
@@ -384,7 +386,7 @@ export default function AddLiquidity() {
 									"flex justify-center items-center gap-2 self-stretch py-[18px] px-6 bg-[#773030] cursor-pointer",
 									!currentAccount && "hidden"
 								)}
-								onClick={() => addLiquidity()}
+								onClick={addLiquidity}
 							>
 								<span className="text-base font-bold">Add</span>
 							</div>
@@ -407,10 +409,8 @@ export default function AddLiquidity() {
 				<ConfirmModal
 					isShowing={isShowConfirmModal}
 					hide={setIsShowConfirmModal}
-					submitting={submitting}
-					isSuccess={isSuccess}
-					setIsSuccess={setIsSuccess}
-					setSubmitting={setSubmitting}
+					status={status}
+					setStatus={setStatus}
 				/>
 			)}
 		</>

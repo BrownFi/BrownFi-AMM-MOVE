@@ -17,7 +17,7 @@ export const getCoinOjectIdsByAmount = async (
 	while (hasNextPage) {
 		try {
 			const suiClient = new SuiClient({
-				url: "https://fullnode.devnet.sui.io:443",
+				url: "https://fullnode.testnet.sui.io:443",
 			});
 			const coins: PaginatedCoins = await suiClient.getCoins({
 				owner: address,

@@ -3,7 +3,7 @@ import SUI_IMAGE from "/images/sui.svg";
 
 export const SUITOKENS = [
 	{
-		address: "0x23a21e3ce259d81cc21a4e4e4e0dad7be73855f2c3a73a1ad7fea1e1d248fa94::mock_token::MOCK_TOKEN",
+		address: "0x70f7bbfa1c8fb5c9f4294027958c7bb19cea373169ae58031f45f3b8273d0c82::mock_usdt::MOCK_USDT",
 		calculate_decimals: 6,
 		decimals: 6,
 		logoURI: "https://icones.pro/wp-content/uploads/2021/05/icone-point-d-interrogation-question-noir.png",

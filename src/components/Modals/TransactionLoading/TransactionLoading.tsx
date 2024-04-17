@@ -8,8 +8,7 @@ import FailedCircle from "../../Icons/FailCircle";
 
 const ConfirmModal = (props: any) => {
 	const [isShowMore, setIsShowMore] = useState<boolean>(false);
-	const [isFailed, setIsFailed] = useState<boolean>(false);
-	const { isShowing, hide, submitting, isSuccess, setIsSuccess, setSubmitting } = props;
+	const { isShowing, hide, status, setStatus, isSwap } = props;
 
 	const useOutsideAlerter = (ref: any) => {
 		useEffect(() => {
@@ -19,8 +18,7 @@ const ConfirmModal = (props: any) => {
 			function handleClickOutside(event: any) {
 				if (ref.current && !ref.current.contains(event.target)) {
 					hide(false);
-					setIsSuccess(false);
-					setSubmitting(false);
+					setStatus("");
 				}
 			}
 			// Bind the event listener
@@ -41,16 +39,20 @@ const ConfirmModal = (props: any) => {
 				<div className={`modal-overlay`}>
 					<div
 						ref={wrapperRef}
-						className={twMerge("flex flex-col items-center gap-5 modal-content-review", submitting && "gap-10", isSuccess && "gap-10", isFailed && "gap-10")}
+						className={twMerge(
+							"flex flex-col items-center gap-5 modal-content-review",
+							status === "submitting" && "gap-10",
+							status === "success" && "gap-10",
+							status === "fail" && "gap-10"
+						)}
 					>
 						<ConfirmModalHeader
 							close={() => {
 								hide(false);
-								setIsSuccess(false);
-								setSubmitting(false);
+								setStatus("");
 							}}
 						/>
-						{submitting && (
+						{status === "submitting" && (
 							<>
 								<div className="flex flex-col items-center gap-5">
 									<Spin
@@ -68,22 +70,22 @@ const ConfirmModal = (props: any) => {
 								<span className="text-xs text-[rgba(255,255,255,0.5)] font-medium leading-[18px]">Proceed in your wallet</span>
 							</>
 						)}
-						{isSuccess && (
+						{status === "success" && (
 							<>
 								<div className="flex flex-col items-center gap-5">
 									<CheckCircle />
 									<div className="flex flex-col items-center gap-5">
-										<span className="text-[32px] text-[#27E39F] font-semibold leading-[39px]">Swap Success</span>
+										<span className="text-[32px] text-[#27E39F] font-semibold leading-[39px]">{isSwap ? "Swap Success" : "Add Liquidity Success"}</span>
 									</div>
 								</div>
 							</>
 						)}
-						{isFailed && (
+						{status === "fail" && (
 							<>
 								<div className="flex flex-col items-center gap-5">
 									<FailedCircle />
 									<div className="flex flex-col items-center gap-5">
-										<span className="text-[32px] text-[#FF3B6A] font-semibold leading-[39px]">Swap Fail</span>
+										<span className="text-[32px] text-[#FF3B6A] font-semibold leading-[39px]">{isSwap ? "Swap Fail" : "Add Liquidity Fail"}</span>
 									</div>
 								</div>
 								<span className="text-base text-[#FF3B6A] font-bold leading-[20px] cursor-pointer">View on Explorer</span>
