@@ -42,7 +42,7 @@ https://ieeexplore.ieee.org/abstract/document/10456889
 
 ## Smartcontract repo
 Core contracts of AMM prototype https://github.com/BrownFi/BrownFi-Sui  
-Deployed link on devnet: https://suiscan.xyz/devnet/object/0x6394e554433ff20acb0d79d9538a13f6f8159f2cb7444ed98ef2bbb2ec999c62/txs  
+Deployed link on testnet: https://suiscan.xyz/testnet/object/0xbacddd9ff142a3d5621fc0bb453d7af967b1dc201ce982b32b6db9402370fbd0/txs  
 
 ## Frontend vercel
 https://brownfi-sui.vercel.app/#/add/v2 
