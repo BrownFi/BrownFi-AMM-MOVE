@@ -1,5 +1,5 @@
 # BrownFi AMM
-** renovated AMM to unlock deep liquidity & capital efficiency on SUI** 
+**Renovated AMM to unlock deep liquidity & capital efficiency on SUI** 
 
 ## Fundamental problems  
 - Uniswap v2 is simple but low Capital Efficiency (CE)
@@ -41,7 +41,7 @@ https://ieeexplore.ieee.org/abstract/document/10456889
 
 ## Smartcontract repo
 Core contracts of AMM prototype https://github.com/BrownFi/BrownFi-Sui  
-Deployed link on testnet: 
+Deployed link on testnet: https://suiscan.xyz/testnet/object/0x76fe98da24ac93bc36b2ea8f69ae3673549e91e6357543be36f3eaf9376bbaba 
 
 
 
