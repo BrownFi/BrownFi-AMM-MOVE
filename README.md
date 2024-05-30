@@ -1,13 +1,12 @@
 # BrownFi AMM
-**a ve(3,3) renovated AMM to unlock deep liquidity & capital efficiency on SUI** 
+** renovated AMM to unlock deep liquidity & capital efficiency on SUI** 
 
 ## Fundamental problems  
-- Conventional DEXes usually misalign incentives for LPs, offer token inflation with rewards controlled by the DEX developers.
 - Uniswap v2 is simple but low Capital Efficiency (CE)
 - Uniswap v3 has high CE but complicated UX for LPs, non-fungible LP tokens. It requires manually adjusting bins.
 
-## Solution: a novel ve(3,3) renovated AMM 
-We renovate AMM model and apply ve(3,3) token model to unlock deep liquidity and maximize incentives for all participants. We invent a novel price discovery mechanism, inspired by order-book, to tailor CE & market making, while keeping simple UX, fungibility & reusability of LP tokens of Uniswap v2. On the other hand, veToken model is integrated with our innovative AMM to align and maximize incentives for all participants (LPs, traders, veToken stakers). All of these makes BrownFi standing out of other competitors on SUI ecosystem. Our AMM model is originated from a rigorous [research paper](https://ieeexplore.ieee.org/abstract/document/10456889) of BrownFi's cofounder, published on IEEE Access, a reputable academic journal. 
+## Solution: a novel AMM 
+ We invent a novel price discovery mechanism, inspired by order-book, to tailor CE & market making, while keeping simple UX, fungibility & reusability of LP tokens of Uniswap v2. All of these makes BrownFi standing out of other competitors on SUI ecosystem. Our AMM model is originated from a rigorous [research paper](https://ieeexplore.ieee.org/abstract/document/10456889) of BrownFi's cofounder, published on IEEE Access, a reputable academic journal. 
 
 
 ## Introduction
@@ -42,10 +41,7 @@ https://ieeexplore.ieee.org/abstract/document/10456889
 
 ## Smartcontract repo
 Core contracts of AMM prototype https://github.com/BrownFi/BrownFi-Sui  
-Deployed link on testnet: https://suiscan.xyz/testnet/object/0xbacddd9ff142a3d5621fc0bb453d7af967b1dc201ce982b32b6db9402370fbd0/txs  
+Deployed link on testnet: 
 
-## Frontend vercel
-https://brownfi-sui.vercel.app/#/add/v2 
-Priv key for test account: suiprivkey1qzufm5wcxdc7wal4g03ndszy2r2u372tn576cm8xe6594u739npuye9mtnj
 
 
