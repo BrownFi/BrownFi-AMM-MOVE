@@ -2,11 +2,25 @@ import { colors, theme } from "../theme";
 import { AutoColumn } from "./Column";
 import { suiClient } from "../utils/config";
 import { Field } from "../model/inputs";
-import { SUILPLIST, SUITOKENS } from "../utils/tokens";
+import {
+	AMM_PACKAGE,
+	SUI_USDT_POOL_ID,
+	SUILPLIST,
+	SUITOKENS,
+} from "../utils/tokens";
 import { SUI_COIN_TYPE } from "../constants/constants";
-import { checkLPValid, getBalanceAmount, getDecimalAmount, getSymbol, getTokenIcon } from "../utils/utils";
+import {
+	checkLPValid,
+	getBalanceAmount,
+	getDecimalAmount,
+	getSymbol,
+	getTokenIcon,
+} from "../utils/utils";
 import { BigNumberInstance } from "../utils/bigNumber";
-import { handleGetCoinAmount } from "../libs/handleGetCoinAmount";
+import {
+	handleGetCoinAmount,
+	normalizeCoinType,
+} from "../libs/handleGetCoinAmount";
 import { useEffect, useState } from "react";
 import { TransactionBlock } from "@mysten/sui.js/transactions";
 import { twMerge } from "tailwind-merge";
@@ -25,6 +39,7 @@ import ConfirmModal from "./Modals/TransactionLoading/TransactionLoading";
 import { Ed25519Keypair } from "@mysten/sui.js/keypairs/ed25519";
 import { fromHEX } from "@mysten/sui.js/utils";
 import { getFullnodeUrl } from "@mysten/sui.js/client";
+import { numberWithCommas } from "../utils/format";
 
 const LightDiv = styled.div`
 	color: ${colors().text1};
@@ -87,25 +102,90 @@ export default function Swap() {
 	const [slippage, setSlippage] = useState<string>("0.5");
 	const [disabledMultihops, setDisabledMultihops] = useState<boolean>(false);
 
-	const { data: balances, isLoading } = useSWR<(any | undefined)[]>([currentAccount, tokens[Field.INPUT], tokens[Field.OUTPUT]], async () => {
-		if (!currentAccount) return [];
-		return Promise.all(
-			[tokens[Field.INPUT], tokens[Field.OUTPUT]].map(async (t) => {
-				if (!t) return undefined;
-				const res = await suiClient.getBalance({
-					owner: currentAccount.address,
-					coinType: t,
-				});
-				return res;
-			})
-		);
-	});
+	const { data: balances, isLoading } = useSWR<(any | undefined)[]>(
+		[currentAccount, tokens[Field.INPUT], tokens[Field.OUTPUT]],
+		async () => {
+			if (!currentAccount) return [];
+			return Promise.all(
+				[tokens[Field.INPUT], tokens[Field.OUTPUT]].map(async (t) => {
+					if (!t) return undefined;
+					const res = await suiClient.getBalance({
+						owner: currentAccount.address,
+						coinType: t,
+					});
+					return res;
+				})
+			);
+		}
+	);
+
+	const [pool, setPool] = useState<any>();
+
+	useEffect(() => {
+		(async () => {
+			// const tableId =
+			// 	"0x623c337b52df29f90d427a4cb5c38979fea3cbbd4b05ca16b596014daf2762cc";
+
+			// const tableKeys = await suiClient.getDynamicFields({ parentId: tableId });
+			// const poolItem = tableKeys.data.find(
+			// 	(i) =>
+			// 		(normalizeCoinType((i.name.value as any).a.name) ===
+			// 			normalizeCoinType(tokens[Field.INPUT]) &&
+			// 			normalizeCoinType((i.name.value as any).b.name) ===
+			// 				normalizeCoinType(tokens[Field.OUTPUT])) ||
+			// 		(normalizeCoinType((i.name.value as any).a.name) ===
+			// 			normalizeCoinType(tokens[Field.OUTPUT]) &&
+			// 			normalizeCoinType((i.name.value as any).b.name) ===
+			// 				normalizeCoinType(tokens[Field.INPUT]))
+			// );
+			// if (!poolItem) return;
+
+			// const poolId = await suiClient.getDynamicFieldObject({
+			// 	parentId: FACTORY_TABLE_ID,
+			// 	name: {
+			// 		type: poolItem.name.type,
+			// 		fields: {
+			// 			a: {
+			// 				type: "0x1::type_name::TypeName",
+			// 				fields: {
+			// 					name: (poolItem.name.value as any).a.name,
+			// 				},
+			// 			},
+			// 			b: {
+			// 				type: "0x1::type_name::TypeName",
+			// 				fields: {
+			// 					name: (poolItem.name.value as any).b.name,
+			// 				},
+			// 			},
+			// 		},
+			// 	},
+			// });
+
+			// @todo fetch pool ID
+
+			const pool = await suiClient.getObject({
+				id: SUI_USDT_POOL_ID,
+				options: { showType: true, showContent: true },
+			});
+			const types = pool.data!.type!.match(/<([^,]+),\s*([^>]+)>/);
+
+			setPool({
+				id: pool.data!.objectId,
+				token0: types![1],
+				token1: types![2],
+				reserve0: (pool.data!.content! as any).fields.balance_a,
+				reserve1: (pool.data!.content! as any).fields.balance_b,
+				fee: (pool.data!.content! as any).fields.fee_points,
+				lp: (pool.data!.content! as any).fields.lp_supply.fields.value,
+			});
+		})();
+	}, [suiClient, tokens[Field.INPUT], tokens[Field.OUTPUT]]);
 
 	const handleSwap = async () => {
 		try {
-			const isLPExist = SUILPLIST.find((item) => item.coinA.address === tokens[Field.INPUT] && item.coinB.address === tokens[Field.OUTPUT]);
+			// const isLPExist = SUILPLIST.find((item) => item.coinA.address === tokens[Field.INPUT] && item.coinB.address === tokens[Field.OUTPUT]);
 
-			if (!currentAccount || !balances) return;
+			if (!pool || !currentAccount || !balances) return;
 
 			setIsShowConfirmModal(true);
 			setStatus("submitting");
@@ -128,17 +208,34 @@ export default function Swap() {
 				txb
 			);
 
-			txb.moveCall({
-				target: `0xbacddd9ff142a3d5621fc0bb453d7af967b1dc201ce982b32b6db9402370fbd0::interface::swap`,
-				typeArguments: [coinAType, coinBType],
-				arguments: [
-					txb.object("0x6e7e70fe7c052cb9a8c66015ecb07ab3de2ad4500e7031c0ae135a2917948bb9"),
-					isObject(coinObjectAId) ? coinObjectAId : tx.object(coinObjectAId),
-					txb.pure(1),
-				],
-			});
+			const inputIsToken0 =
+				normalizeCoinType(pool.token0) ===
+				normalizeCoinType(tokens[Field.INPUT]);
+
+			if (inputIsToken0) {
+				txb.moveCall({
+					target: `${AMM_PACKAGE}::swap::swap_a_for_b_with_coin_and_transfer_to_sender`,
+					typeArguments: [coinAType, coinBType],
+					arguments: [
+						txb.object(pool.id),
+						isObject(coinObjectAId) ? coinObjectAId : tx.object(coinObjectAId),
+						txb.pure(0, "u64"),
+					],
+				});
+			} else {
+				txb.moveCall({
+					target: `${AMM_PACKAGE}::swap::swap_b_for_a_with_coin_and_transfer_to_sender`,
+					typeArguments: [coinBType, coinAType],
+					arguments: [
+						txb.object(pool.id),
+						isObject(coinObjectAId) ? coinObjectAId : tx.object(coinObjectAId),
+						txb.pure(0, "u64"),
+					],
+				});
+			}
+
 			txb.setSender(currentAccount.address);
-			txb.setGasBudget(1000000000);
+			txb.setGasBudget(10000000);
 
 			const bytes = await txb.build({ client: suiClient });
 
@@ -169,16 +266,49 @@ export default function Swap() {
 			console.log("🚀 ~ file: swap.js:6 ~ main ~ error:", error);
 		}
 	};
-
 	const handleChangeAmounts = (value: string, independentField: Field) => {
 		if (isNaN(+value)) return;
 
 		setTypedValue(value);
 		setIndependentField(independentField);
-		setTokenAmounts({
-			[Field.INPUT]: value,
-			[Field.OUTPUT]: (Number(value) * 9).toString(),
-		});
+
+		if (pool) {
+			const isToken0 =
+				normalizeCoinType(pool.token0) ===
+				normalizeCoinType(tokens[independentField]);
+
+			let otherValue = (
+				isToken0
+					? (+value * pool.reserve1) / pool.reserve0
+					: (+value * pool.reserve0) / pool.reserve1
+			).toString();
+
+			console.log(pool);
+
+			if (independentField === Field.INPUT) {
+				setTokenAmounts({
+					[Field.INPUT]: value,
+					[Field.OUTPUT]: otherValue,
+				});
+			} else {
+				setTokenAmounts({
+					[Field.INPUT]: otherValue,
+					[Field.OUTPUT]: value,
+				});
+			}
+		} else {
+			if (independentField === Field.INPUT) {
+				setTokenAmounts((pre) => ({
+					[Field.INPUT]: value,
+					[Field.OUTPUT]: pre.OUTPUT,
+				}));
+			} else {
+				setTokenAmounts((pre) => ({
+					[Field.INPUT]: pre.INPUT,
+					[Field.OUTPUT]: value,
+				}));
+			}
+		}
 	};
 
 	return (
@@ -193,10 +323,16 @@ export default function Swap() {
 						<div className="flex w-full flex-col items-center gap-2">
 							<div className="flex flex-col items-start gap-5 self-stretch bg-[#131216] p-4 self-stretch">
 								<div className="flex justify-between items-center self-stretch">
-									<span className="text-lg font-normal text-white font-['Russo_One']">You Pay</span>
+									<span className="text-lg font-normal text-white font-['Russo_One']">
+										You Pay
+									</span>
 									<div className="flex items-center gap-1 text-base font-normal">
 										<span>Balance:</span>
-										<span>{balances && balances.length > 0 ? `${getBalanceAmount(balances[0])}` : "--"}</span>
+										<span>
+											{balances && balances.length > 0
+												? `${numberWithCommas(getBalanceAmount(balances[0]))}`
+												: "--"}
+										</span>
 									</div>
 								</div>
 								<div className="flex flex-col items-start gap-[2px] self-stretch">
@@ -206,7 +342,9 @@ export default function Swap() {
 												placeholder="0.0"
 												className="border-none px-0 text-xl font-bold max-w-[150px] text-[#C6C6C6]"
 												value={tokenAmounts[Field.INPUT]}
-												onChange={(e) => handleChangeAmounts(e.target.value, Field.INPUT)}
+												onChange={(e) =>
+													handleChangeAmounts(e.target.value, Field.INPUT)
+												}
 											/>
 										</div>
 										<div
@@ -222,7 +360,9 @@ export default function Swap() {
 													alt=""
 													className="h-5 w-5"
 												/>
-												<span className="text-sm font-medium">{getSymbol(tokens[Field.INPUT] ?? "")}</span>
+												<span className="text-sm font-medium">
+													{getSymbol(tokens[Field.INPUT] ?? "")}
+												</span>
 											</div>
 											<ArrowDown />
 										</div>
@@ -259,10 +399,16 @@ export default function Swap() {
 							{/* To */}
 							<div className="flex flex-col items-start gap-5 self-stretch bg-[#131216] p-4">
 								<div className="flex justify-between items-center self-stretch">
-									<span className="text-lg font-normal text-white font-['Russo_One']">Your Receive</span>
+									<span className="text-lg font-normal text-white font-['Russo_One']">
+										Your Receive
+									</span>
 									<div className="flex items-center gap-1 text-base font-normal">
 										<span>Balance:</span>
-										<span className={isLoading ? "hidden" : ""}>{balances && balances.length > 0 ? `${getBalanceAmount(balances[1])}` : "--"}</span>
+										<span className={isLoading ? "hidden" : ""}>
+											{balances && balances.length > 0
+												? `${numberWithCommas(getBalanceAmount(balances[1]))}`
+												: "--"}
+										</span>
 										<Skeleton.Input
 											className={!isLoading ? "!hidden" : ""}
 											active
@@ -280,7 +426,9 @@ export default function Swap() {
 													// isLoadingTrade && "hidden"
 												)}
 												value={tokenAmounts[Field.OUTPUT]}
-												onChange={(e) => handleChangeAmounts(e.target.value, Field.OUTPUT)}
+												onChange={(e) =>
+													handleChangeAmounts(e.target.value, Field.OUTPUT)
+												}
 											/>
 											{/* <Skeleton.Input
 									className={
@@ -305,7 +453,9 @@ export default function Swap() {
 													alt=""
 													className="h-5 w-5"
 												/>
-												<span className="text-sm font-medium">{getSymbol(tokens[Field.OUTPUT] ?? "")}</span>
+												<span className="text-sm font-medium">
+													{getSymbol(tokens[Field.OUTPUT] ?? "")}
+												</span>
 											</div>
 											<ArrowDown />
 										</div>
@@ -323,9 +473,14 @@ export default function Swap() {
 							</div>
 						</div>
 						{!currentAccount && <Login></Login>}
-						{currentAccount && balances && BigNumberInstance(tokenAmounts[Field.INPUT]) > getBalanceAmount(balances[0]) ? (
+						{currentAccount &&
+						balances &&
+						BigNumberInstance(tokenAmounts[Field.INPUT]) >
+							getBalanceAmount(balances[0]) ? (
 							<div className="flex justify-center items-center gap-2 self-stretch py-[18px] px-6 bg-[#737373] cursor-not-allowed">
-								<span className="text-base font-bold">Insufficient Balance</span>
+								<span className="text-base font-bold">
+									Insufficient Balance
+								</span>
 							</div>
 						) : (
 							<div

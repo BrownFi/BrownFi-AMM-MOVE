@@ -13,21 +13,23 @@ import { QueryClientProvider } from "@tanstack/react-query";
 
 import { queryClient } from "./lib/queryClient";
 
-const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
+const root = ReactDOM.createRoot(
+	document.getElementById("root") as HTMLElement
+);
 
 root.render(
 	<StrictMode>
 		<FixedGlobalStyle />
 		<QueryClientProvider client={queryClient}>
 			<SuiClientProvider
-				defaultNetwork="sui:devnet"
+				defaultNetwork="sui:testnet"
 				networks={{
 					"sui:testnet": { url: getFullnodeUrl("testnet") },
 					"sui:mainnet": { url: getFullnodeUrl("mainnet") },
 					"sui:devnet": { url: getFullnodeUrl("devnet") },
 				}}
 			>
-				<WalletProvider>
+				<WalletProvider autoConnect={true}>
 					<ThemeProvider>
 						<ThemedGlobalStyle />
 						<HashRouter>

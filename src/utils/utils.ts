@@ -3,8 +3,10 @@ import { Token } from "../model/coins";
 import { BIG_TEN, BigNumberInstance } from "./bigNumber";
 import { SUILPLIST, SUITOKENS } from "./tokens";
 import SUI_TOKEN_ICON from "/images/sui.svg";
+import { BigNumber } from "bignumber.js";
 
-export const UNKNOWN_TOKEN_ICON = "https://icones.pro/wp-content/uploads/2021/05/icone-point-d-interrogation-question-noir.png";
+export const UNKNOWN_TOKEN_ICON =
+	"https://icones.pro/wp-content/uploads/2021/05/icone-point-d-interrogation-question-noir.png";
 
 export const getTokenIcon = (coinType: string) => {
 	if (coinType === SUI_COIN_TYPE) {
@@ -34,12 +36,19 @@ export const getSymbol = (coinType: string) => {
 	}
 };
 
-export const getDecimalAmount = (amount: string | number, coinType?: string, decimals = LP_DECIMAL) => {
+export const getDecimalAmount = (
+	amount: string | number,
+	coinType?: string,
+	decimals = LP_DECIMAL
+) => {
 	if (coinType === SUI_COIN_TYPE) {
-		return BigNumberInstance(amount).times(BIG_TEN.pow(decimals)).toFixed();
+		return BigNumberInstance(amount)
+			.times(BIG_TEN.pow(decimals))
+			.integerValue(BigNumber.ROUND_DOWN)
+			.toFixed();
 	} else {
-		// TODO
-		return BigNumberInstance(amount).times(BIG_TEN.pow(6)).toFixed();
+		// @todo change to coin decimals
+		return BigNumberInstance(amount).times(BIG_TEN.pow(9)).toFixed();
 	}
 };
 
@@ -47,12 +56,15 @@ export const getBalanceAmount = (coin: Token, decimals = LP_DECIMAL) => {
 	if (coin.coinType === SUI_COIN_TYPE) {
 		return BigNumberInstance(coin.totalBalance).div(BIG_TEN.pow(decimals));
 	} else {
-		return BigNumberInstance(coin.totalBalance).div(BIG_TEN.pow(6));
+		// @todo change to coin decimals
+		return BigNumberInstance(coin.totalBalance).div(BIG_TEN.pow(9));
 	}
 };
 
 export const checkLPValid = (coinX: string, coinY: string) => {
-	const isLPExist = SUILPLIST.find((item) => item.coinA.address === coinX && item.coinB.address === coinY);
+	const isLPExist = SUILPLIST.find(
+		(item) => item.coinA.address === coinX && item.coinB.address === coinY
+	);
 	if (isLPExist) return true;
 	return false;
 };
